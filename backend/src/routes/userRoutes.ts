@@ -147,6 +147,77 @@ router.get('/', userController.getAllUsers);
 
 /**
  * @swagger
+ * /users/doctors:
+ *   get:
+ *     summary: Get all doctors
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all doctors with their profiles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 allOf:
+ *                   - $ref: '#/components/schemas/User'
+ *                   - type: object
+ *                     properties:
+ *                       doctorProfile:
+ *                         $ref: '#/components/schemas/DoctorProfile'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/doctors', userController.getAllDoctors);
+
+/**
+ * @swagger
+ * /users/patients:
+ *   get:
+ *     summary: Get all patients
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all patients
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/patients', userController.getAllPatients);
+
+/**
+ * @swagger
+ * /users/admins:
+ *   get:
+ *     summary: Get all hospital admins
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all hospital admins
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/admins', userController.getAllAdmins);
+
+/**
+ * @swagger
  * /users/{id}:
  *   get:
  *     summary: Get user by ID
@@ -243,76 +314,5 @@ router.get('/', userController.getAllUsers);
 router.get('/:id', userController.getUserById);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
-
-/**
- * @swagger
- * /users/doctors:
- *   get:
- *     summary: Get all doctors
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all doctors with their profiles
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 allOf:
- *                   - $ref: '#/components/schemas/User'
- *                   - type: object
- *                     properties:
- *                       doctorProfile:
- *                         $ref: '#/components/schemas/DoctorProfile'
- *       500:
- *         description: Internal server error
- */
-router.get('/doctors', userController.getAllDoctors);
-
-/**
- * @swagger
- * /users/patients:
- *   get:
- *     summary: Get all patients
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all patients
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
- *       500:
- *         description: Internal server error
- */
-router.get('/patients', userController.getAllPatients);
-
-/**
- * @swagger
- * /users/admins:
- *   get:
- *     summary: Get all hospital admins
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all hospital admins
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
- *       500:
- *         description: Internal server error
- */
-router.get('/admins', userController.getAllAdmins);
 
 export default router; 
