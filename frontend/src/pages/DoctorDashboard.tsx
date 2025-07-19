@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { doctorsAPI, availabilityAPI, appointmentsAPI } from '../services/api';
 import { DoctorDashboard as DashboardData, DoctorHospital, Availability, Appointment } from '../types';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { 
   CurrencyDollarIcon, 
   CalendarIcon, 
@@ -57,8 +58,8 @@ const DoctorDashboard: React.FC = () => {
       setHospitals(hospitalsData);
       setAvailabilities(availabilitiesData);
       setAppointments(appointmentsData);
-    } catch (error) {
-      toast.error('Failed to load dashboard data');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ const DoctorDashboard: React.FC = () => {
       setNewAvailability({ hospital_id: '', start_time: '', end_time: '', date: '' });
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create availability');
+      toast.error(getErrorMessage(error, 'Failed to create availability'));
     }
   };
 
@@ -96,7 +97,7 @@ const DoctorDashboard: React.FC = () => {
       setNewAssociation({ hospital_id: '', consultation_fee: 0 });
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to associate with hospital');
+      toast.error(getErrorMessage(error, 'Failed to associate with hospital'));
     }
   };
 
@@ -149,7 +150,7 @@ const DoctorDashboard: React.FC = () => {
                       Total Earnings
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      ₹{dashboard.totalEarnings.toLocaleString()}
+                      ₹{dashboard.statistics.totalEarnings.toLocaleString()}
                     </dd>
                   </dl>
                 </div>
@@ -169,7 +170,7 @@ const DoctorDashboard: React.FC = () => {
                       Total Consultations
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {dashboard.totalConsultations}
+                      {dashboard.statistics.totalConsultations}
                     </dd>
                   </dl>
                 </div>
@@ -189,7 +190,7 @@ const DoctorDashboard: React.FC = () => {
                       Associated Hospitals
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {hospitals.length}
+                      {dashboard.statistics.associatedHospitals}
                     </dd>
                   </dl>
                 </div>
@@ -199,37 +200,88 @@ const DoctorDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Earnings by Hospital */}
-      {dashboard?.earningsByHospital && dashboard.earningsByHospital.length > 0 && (
+      {/* Doctor Profile */}
+      {dashboard?.doctor && (
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Earnings by Hospital</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Doctor Profile</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">Personal Information</h4>
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">Name: </span>
+                    <span className="text-sm text-gray-600">{dashboard.doctor.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">Email: </span>
+                    <span className="text-sm text-gray-600">{dashboard.doctor.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">Qualifications: </span>
+                    <span className="text-sm text-gray-600">{dashboard.doctor.qualifications}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">Experience: </span>
+                    <span className="text-sm text-gray-600">{dashboard.doctor.experience} years</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">Specializations</h4>
+                <div className="flex flex-wrap gap-2">
+                  {dashboard.doctor.specializations.map((spec, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                    >
+                      {spec}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Appointments */}
+      {dashboard?.recentAppointments && dashboard.recentAppointments.length > 0 && (
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Appointments</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Patient
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Hospital
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Consultations
+                      Date & Time
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Earnings
+                      Amount
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {dashboard.earningsByHospital.map((earning) => (
-                    <tr key={earning.hospital_id}>
+                  {dashboard.recentAppointments.map((appointment) => (
+                    <tr key={appointment.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {earning.hospital_name}
+                        {appointment.patient_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {earning.consultations}
+                        {appointment.hospital_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ₹{earning.earnings.toLocaleString()}
+                        {new Date(appointment.appointment_time).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹{appointment.amount_paid}
                       </td>
                     </tr>
                   ))}
@@ -340,50 +392,7 @@ const DoctorDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Appointments */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Appointments</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Hospital
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Time
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {appointments.slice(0, 10).map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {appointment.patient?.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {appointment.hospital?.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(appointment.appointment_time).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₹{appointment.amount_paid}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+
 
       {/* Create Availability Modal */}
       {showCreateAvailability && (

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { hospitalsAPI, departmentsAPI, doctorsAPI } from '../services/api';
 import { Hospital, Department, DoctorHospital, HospitalDashboard as DashboardData, HospitalDoctor } from '../types';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { 
   BuildingOfficeIcon, 
   UserGroupIcon, 
@@ -66,8 +67,8 @@ const HospitalDashboard: React.FC = () => {
           console.log('Loaded doctors data:', doctorsData); // Debug log
         }
       }
-    } catch (error) {
-      toast.error('Failed to load dashboard data');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const HospitalDashboard: React.FC = () => {
       setNewHospital({ name: '', location: '' });
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create hospital');
+      toast.error(getErrorMessage(error, 'Failed to create hospital'));
     }
   };
 
@@ -107,7 +108,7 @@ const HospitalDashboard: React.FC = () => {
       setIsCreatingNew(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to create department');
+      toast.error(getErrorMessage(error, 'Failed to create department'));
     }
   };
 
@@ -133,7 +134,7 @@ const HospitalDashboard: React.FC = () => {
       if (error.response?.status === 409) {
         toast.error(`Department '${existingDept.name}' already exists in this hospital`);
       } else {
-        toast.error(error.response?.data?.error || 'Failed to add existing department');
+        toast.error(getErrorMessage(error, 'Failed to add existing department'));
       }
     }
   };
@@ -196,7 +197,7 @@ const HospitalDashboard: React.FC = () => {
       closeEditModal();
       loadData(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update hospital');
+      toast.error(getErrorMessage(error, 'Failed to update hospital'));
     } finally {
       setLoadingAction(false);
     }
@@ -212,7 +213,7 @@ const HospitalDashboard: React.FC = () => {
       closeDeleteModal();
       loadData(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete hospital');
+      toast.error(getErrorMessage(error, 'Failed to delete hospital'));
     } finally {
       setLoadingAction(false);
     }

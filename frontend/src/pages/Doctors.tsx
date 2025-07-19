@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usersAPI, hospitalsAPI } from '../services/api';
 import { User, Hospital } from '../types';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { 
   UserIcon, 
   AcademicCapIcon,
@@ -61,8 +62,8 @@ const Doctors: React.FC = () => {
 
       setDoctors(doctorsData);
       setHospitals(hospitalsData);
-    } catch (error) {
-      toast.error('Failed to load doctors');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load doctors'));
     } finally {
       setLoading(false);
     }
@@ -197,7 +198,7 @@ const Doctors: React.FC = () => {
       toast.success('Appointment booked successfully!');
       closeAppointmentModal();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to book appointment');
+      toast.error(getErrorMessage(error, 'Failed to book appointment'));
     } finally {
       setLoadingAction(false);
     }

@@ -147,4 +147,93 @@ export class DoctorController {
       res.status(500).json({ error: 'Failed to update consultation fee' });
     }
   };
+
+  getDoctorDashboard = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if doctor exists
+      const doctor = await this.userRepository.findOne({
+        where: { id, role: UserRole.DOCTOR },
+        relations: ['doctorProfile']
+      });
+
+      if (!doctor) {
+        return res.status(404).json({ error: 'Doctor not found' });
+      }
+
+      // Get total consultations
+      const totalConsultations = await this.appointmentRepository.count({
+        where: { doctor_id: id }
+      });
+
+      // Get total earnings (60% of consultation fees)
+      const appointments = await this.appointmentRepository.find({
+        where: { doctor_id: id }
+      });
+
+      const totalEarnings = appointments.reduce((total, appointment) => {
+        return total + (appointment.amount_paid * 0.6);
+      }, 0);
+
+      // Get associated hospitals count
+      const associatedHospitals = await this.doctorHospitalRepository.count({
+        where: { doctor_id: id }
+      });
+
+      // Get recent appointments (last 5)
+      const recentAppointments = await this.appointmentRepository.find({
+        where: { doctor_id: id },
+        relations: ['hospital', 'patient'],
+        order: { appointment_time: 'DESC' },
+        take: 5
+      });
+
+      // Get earnings by month (last 6 months)
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const monthlyEarnings = await this.appointmentRepository
+        .createQueryBuilder('appointment')
+        .select('DATE_TRUNC(\'month\', appointment.appointment_time)', 'month')
+        .addSelect('SUM(appointment.amount_paid * 0.6)', 'earnings')
+        .addSelect('COUNT(appointment.id)', 'consultations')
+        .where('appointment.doctor_id = :doctorId', { doctorId: id })
+        .andWhere('appointment.appointment_time >= :sixMonthsAgo', { sixMonthsAgo })
+        .groupBy('DATE_TRUNC(\'month\', appointment.appointment_time)')
+        .orderBy('month', 'DESC')
+        .getRawMany();
+
+      res.json({
+        doctor: {
+          id: doctor.id,
+          name: doctor.name,
+          email: doctor.email,
+          specializations: doctor.doctorProfile?.specializations || [],
+          qualifications: doctor.doctorProfile?.qualifications || '',
+          experience: doctor.doctorProfile?.experience || 0
+        },
+        statistics: {
+          totalConsultations,
+          totalEarnings,
+          associatedHospitals
+        },
+        recentAppointments: recentAppointments.map(apt => ({
+          id: apt.id,
+          appointment_time: apt.appointment_time,
+          amount_paid: apt.amount_paid,
+          hospital_name: apt.hospital?.name,
+          patient_name: apt.patient?.name
+        })),
+        monthlyEarnings: monthlyEarnings.map(item => ({
+          month: item.month,
+          earnings: parseFloat(item.earnings),
+          consultations: parseInt(item.consultations)
+        }))
+      });
+    } catch (error) {
+      console.error('Error fetching doctor dashboard:', error);
+      res.status(500).json({ error: 'Failed to fetch doctor dashboard' });
+    }
+  };
 } 

@@ -102,13 +102,29 @@ export interface HospitalDashboard {
 }
 
 export interface DoctorDashboard {
-  totalEarnings: number;
-  totalConsultations: number;
-  earningsByHospital: Array<{
-    hospital_id: string;
+  doctor: {
+    id: string;
+    name: string;
+    email: string;
+    specializations: string[];
+    qualifications: string;
+    experience: number;
+  };
+  statistics: {
+    totalConsultations: number;
+    totalEarnings: number;
+    associatedHospitals: number;
+  };
+  recentAppointments: Array<{
+    id: string;
+    appointment_time: string;
+    amount_paid: number;
     hospital_name: string;
+    patient_name: string;
+  }>;
+  monthlyEarnings: Array<{
+    month: string;
     earnings: number;
-    consultations: number;
   }>;
 }
 

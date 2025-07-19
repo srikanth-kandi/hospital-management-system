@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { appointmentsAPI } from '../services/api';
 import { Appointment } from '../types';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { 
   CalendarIcon, 
   UserIcon,
@@ -72,8 +73,8 @@ const Appointments: React.FC = () => {
       }
 
       setAppointments(appointmentsData);
-    } catch (error) {
-      toast.error('Failed to load appointments');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load appointments'));
     } finally {
       setLoading(false);
     }
@@ -252,7 +253,7 @@ const Appointments: React.FC = () => {
       closeCancelModal();
       loadAppointments(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to cancel appointment');
+      toast.error(getErrorMessage(error, 'Failed to cancel appointment'));
     } finally {
       setLoadingAction(false);
     }
@@ -273,7 +274,7 @@ const Appointments: React.FC = () => {
       closeRescheduleModal();
       loadAppointments(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to reschedule appointment');
+      toast.error(getErrorMessage(error, 'Failed to reschedule appointment'));
     } finally {
       setLoadingAction(false);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { hospitalsAPI, departmentsAPI } from '../services/api';
 import { Hospital, Department, HospitalDoctor } from '../types';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../utils/errorHandler';
 import { 
   BuildingOfficeIcon, 
   MapPinIcon,
@@ -49,8 +50,8 @@ const Hospitals: React.FC = () => {
 
       setHospitals(hospitalsData);
       setDepartments(departmentsData);
-    } catch (error) {
-      toast.error('Failed to load hospitals');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load hospitals'));
     } finally {
       setLoading(false);
     }
@@ -90,8 +91,8 @@ const Hospitals: React.FC = () => {
       // Load hospital doctors
       const doctorsData = await hospitalsAPI.getDoctors(hospital.id);
       setHospitalDoctors(doctorsData);
-    } catch (error) {
-      toast.error('Failed to load hospital details');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Failed to load hospital details'));
     } finally {
       setLoadingDetails(false);
     }
@@ -136,7 +137,7 @@ const Hospitals: React.FC = () => {
       closeEditModal();
       loadData(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update hospital');
+      toast.error(getErrorMessage(error, 'Failed to update hospital'));
     } finally {
       setLoadingAction(false);
     }
@@ -152,7 +153,7 @@ const Hospitals: React.FC = () => {
       closeDeleteModal();
       loadData(); // Reload data to reflect changes
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete hospital');
+      toast.error(getErrorMessage(error, 'Failed to delete hospital'));
     } finally {
       setLoadingAction(false);
     }

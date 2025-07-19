@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { getErrorMessage } from '../utils/errorHandler';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ const Register: React.FC = () => {
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(getErrorMessage(error, 'Registration failed'));
     } finally {
       setLoading(false);
     }
