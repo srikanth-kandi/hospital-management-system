@@ -60,9 +60,14 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'string', format: 'uuid' },
-            name: { type: 'string' },
-            hospital_id: { type: 'string', format: 'uuid' }
-          }
+            name: { type: 'string', description: 'Department name (unique within hospital)' },
+            hospital_id: { type: 'string', format: 'uuid' },
+            hospital: { 
+              $ref: '#/components/schemas/Hospital',
+              description: 'Hospital information (included in responses)'
+            }
+          },
+          required: ['name', 'hospital_id']
         },
         DoctorProfile: {
           type: 'object',

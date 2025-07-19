@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
+import { authMiddleware } from '../middlewares/auth';
 
 const router = Router();
 const userController = new UserController();
@@ -215,6 +216,38 @@ router.get('/patients', userController.getAllPatients);
  *         description: Internal server error
  */
 router.get('/admins', userController.getAllAdmins);
+
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/me', authMiddleware, userController.getCurrentUser);
 
 /**
  * @swagger

@@ -110,4 +110,9 @@ export interface DoctorDashboard {
     earnings: number;
     consultations: number;
   }>;
+}
+
+// Type for hospital doctors API response (flattened structure)
+export interface HospitalDoctor extends User {
+  consultation_fee: number;
 } 

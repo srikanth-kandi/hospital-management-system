@@ -153,7 +153,7 @@ router.post('/', hospitalController.createHospital);
  *       500:
  *         description: Internal server error
  *   delete:
- *     summary: Delete hospital
+ *     summary: Delete hospital (safe delete - checks for related records)
  *     tags: [Hospitals]
  *     security:
  *       - bearerAuth: []
@@ -170,6 +170,26 @@ router.post('/', hospitalController.createHospital);
  *         description: Hospital deleted successfully
  *       404:
  *         description: Hospital not found
+ *       409:
+ *         description: Cannot delete hospital with existing related records
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: object
+ *                   properties:
+ *                     departments:
+ *                       type: number
+ *                     doctorAssociations:
+ *                       type: number
+ *                     appointments:
+ *                       type: number
+ *                 message:
+ *                   type: string
  *       500:
  *         description: Internal server error
  */
@@ -380,5 +400,38 @@ router.get('/:id/revenue/doctors', hospitalController.getRevenueByDoctors);
  *         description: Internal server error
  */
 router.get('/:id/revenue/departments', hospitalController.getRevenueByDepartments);
+
+/**
+ * @swagger
+ * /hospitals/{id}/force-delete:
+ *   delete:
+ *     summary: Force delete hospital (cascade delete all related records)
+ *     tags: [Hospitals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Hospital ID
+ *     responses:
+ *       204:
+ *         description: Hospital and all related records deleted successfully
+ *       404:
+ *         description: Hospital not found
+ *       500:
+ *         description: Internal server error
+ *     description: |
+ *       ⚠️ **WARNING**: This endpoint will permanently delete the hospital and ALL related records including:
+ *       - All departments in the hospital
+ *       - All doctor-hospital associations
+ *       - All appointments at the hospital
+ *       
+ *       This action cannot be undone. Use with extreme caution.
+ */
+router.delete('/:id/force-delete', hospitalController.forceDeleteHospital);
 
 export default router; 

@@ -5,6 +5,13 @@ import { DoctorProfile } from '../entities/DoctorProfile';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    role: string;
+  };
+}
+
 export class UserController {
   private userRepository = AppDataSource.getRepository(User);
   private doctorProfileRepository = AppDataSource.getRepository(DoctorProfile);
@@ -181,6 +188,30 @@ export class UserController {
       res.json(admins);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch admins' });
+    }
+  };
+
+  getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // Get user ID from JWT token (set by auth middleware)
+      const userId = req.user?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const user = await this.userRepository.findOne({ 
+        where: { id: userId },
+        select: ['id', 'name', 'email', 'role', 'gender', 'dob', 'unique_id', 'created_at']
+      });
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch user' });
     }
   };
 } 

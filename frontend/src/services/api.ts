@@ -5,12 +5,13 @@ import {
   Department, 
   DoctorHospital, 
   Availability, 
-  Appointment,
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-  HospitalDashboard,
-  DoctorDashboard
+  Appointment, 
+  LoginRequest, 
+  RegisterRequest, 
+  AuthResponse, 
+  HospitalDashboard, 
+  DoctorDashboard,
+  HospitalDoctor
 } from '../types';
 
 const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000') + '/api';
@@ -94,7 +95,7 @@ export const hospitalsAPI = {
   getDashboard: (id: string): Promise<HospitalDashboard> =>
     api.get(`/hospitals/${id}/dashboard`).then(res => res.data),
   
-  getDoctors: (id: string): Promise<DoctorHospital[]> =>
+  getDoctors: (id: string): Promise<HospitalDoctor[]> =>
     api.get(`/hospitals/${id}/doctors`).then(res => res.data),
 };
 
@@ -117,6 +118,9 @@ export const departmentsAPI = {
   
   getByHospital: (hospitalId: string): Promise<Department[]> =>
     api.get(`/departments/hospital/${hospitalId}`).then(res => res.data),
+  
+  getUniqueNames: (): Promise<any[]> =>
+    api.get('/departments/unique-names').then(res => res.data),
 };
 
 // Doctors API

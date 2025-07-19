@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Hospital } from './Hospital';
 
 @Entity('departments')
+@Index(['name', 'hospital_id'], { unique: true })
 export class Department {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuidv4();

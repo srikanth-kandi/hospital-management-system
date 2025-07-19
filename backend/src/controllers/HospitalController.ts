@@ -91,6 +91,9 @@ export class HospitalController {
 
       const doctors = doctorHospitals.map(dh => ({
         ...dh.doctor,
+        specializations: dh.doctor?.doctorProfile?.specializations || [],
+        qualifications: dh.doctor?.doctorProfile?.qualifications || '',
+        experience: dh.doctor?.doctorProfile?.experience || 0,
         consultation_fee: dh.consultation_fee
       }));
 
@@ -213,11 +216,79 @@ export class HospitalController {
       if (!hospital) {
         return res.status(404).json({ error: 'Hospital not found' });
       }
+
+      // Check for related records before deletion
+      const departmentsCount = await this.departmentRepository.count({
+        where: { hospital_id: id }
+      });
+
+      const doctorHospitalsCount = await this.doctorHospitalRepository.count({
+        where: { hospital_id: id }
+      });
+
+      const appointmentsCount = await this.appointmentRepository.count({
+        where: { hospital_id: id }
+      });
+
+      // If there are related records, provide detailed error
+      if (departmentsCount > 0 || doctorHospitalsCount > 0 || appointmentsCount > 0) {
+        return res.status(409).json({
+          error: 'Cannot delete hospital with existing related records',
+          details: {
+            departments: departmentsCount,
+            doctorAssociations: doctorHospitalsCount,
+            appointments: appointmentsCount
+          },
+          message: 'Please delete all related departments, doctor associations, and appointments before deleting the hospital.'
+        });
+      }
       
+      // If no related records, proceed with deletion
       await this.hospitalRepository.remove(hospital);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error deleting hospital:', error);
+      
+      // Handle specific database constraint errors
+      if (error.code === '23503') { // Foreign key constraint violation
+        return res.status(409).json({
+          error: 'Cannot delete hospital due to existing related records',
+          message: 'Please remove all associated departments, doctors, and appointments first.'
+        });
+      }
+      
       res.status(500).json({ error: 'Failed to delete hospital' });
+    }
+  };
+
+  forceDeleteHospital = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const hospital = await this.hospitalRepository.findOne({ where: { id } });
+      
+      if (!hospital) {
+        return res.status(404).json({ error: 'Hospital not found' });
+      }
+
+      // Use a transaction to ensure all deletions are atomic
+      await AppDataSource.transaction(async (manager) => {
+        // Delete appointments first
+        await manager.delete(Appointment, { hospital_id: id });
+        
+        // Delete doctor-hospital associations
+        await manager.delete(DoctorHospital, { hospital_id: id });
+        
+        // Delete departments
+        await manager.delete(Department, { hospital_id: id });
+        
+        // Finally delete the hospital
+        await manager.remove(hospital);
+      });
+
+      res.status(204).send();
+    } catch (error: any) {
+      console.error('Error force deleting hospital:', error);
+      res.status(500).json({ error: 'Failed to force delete hospital' });
     }
   };
 } 
